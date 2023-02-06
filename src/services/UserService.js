@@ -26,4 +26,48 @@ module.exports = {
       });
     });
   },
+
+  inserir: (name, email, password, token) => {
+    return new Promise((aceito, rejeitado) => {
+      db.query(
+        "INSERT INTO users (name, email, password, token) VALUES (?, ?, ?, uuid())",
+        [name, email, password, token],
+        (error, results) => {
+          if (error) {
+            rejeitado(error);
+            return;
+          }
+          aceito(results.insertId);
+        }
+      );
+    });
+  },
+
+  alterar: (id, name, email, password) => {
+    return new Promise((aceito, rejeitado) => {
+      db.query(
+        "UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?",
+        [name, email, password, id],
+        (error, results) => {
+          if (error) {
+            rejeitado(error);
+            return;
+          }
+          aceito(results);
+        }
+      );
+    });
+  },
+
+  excluir: (id) => {
+    return new Promise((aceito, rejeitado) => {
+      db.query("DELETE FROM users WHERE id = ?", [id], (error, results) => {
+        if (error) {
+          rejeitado(error);
+          return;
+        }
+        aceito(results);
+      });
+    });
+  },
 };

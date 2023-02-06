@@ -34,16 +34,51 @@ module.exports = {
   inserir: async (req, res) => {
     let json = { error: "", result: {} };
 
-    let id = req.params.id;
-    let user = await UserService.buscarUm(id);
+    let name = req.body.name;
+    let email = req.body.email;
+    let password = req.body.password;
 
-    if (user) {
+    if (name && email && password) {
+      let UserId = await UserService.inserir(name, email, password);
       json.result = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
+        id: UserId,
+        name,
+        email,
+        password,
       };
+    } else {
+      json.error = "Campos não enviados";
     }
+    res.json(json);
+  },
+
+  alterar: async (req, res) => {
+    let json = { error: "", result: {} };
+
+    let id = req.params.id;
+    let name = req.body.name;
+    let email = req.body.email;
+    let password = req.body.password;
+
+    if (id && name && email && password) {
+      await UserService.alterar(id, name, email, password);
+      json.result = {
+        id,
+        name,
+        email,
+        password,
+      };
+    } else {
+      json.error = "Campos não enviados";
+    }
+    res.json(json);
+  },
+
+  excluir: async (req, res) => {
+    let json = { error: "", result: {} };
+
+    await UserService.excluir(req.params.id);
+
     res.json(json);
   },
 };
