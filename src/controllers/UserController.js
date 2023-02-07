@@ -11,6 +11,8 @@ module.exports = {
         id: users[i].id,
         name: users[i].name,
         email: users[i].email,
+        password: users[i].password,
+        token: users[i].token,
       });
     }
     res.json(json);
@@ -79,20 +81,6 @@ module.exports = {
 
     await UserService.excluir(req.params.id);
 
-    res.json(json);
-  },
-
-  buscarToken: async (req, res) => {
-    let json = { error: "", result: {} };
-
-    let id = req.params.id;
-    let user = await UserService.buscarToken(id);
-
-    if (user) {
-      json.result = {
-        token: user.token,
-      };
-    }
     res.json(json);
   },
 };
