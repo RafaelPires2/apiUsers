@@ -81,4 +81,18 @@ module.exports = {
 
     res.json(json);
   },
+
+  buscarToken: async (req, res) => {
+    let json = { error: "", result: {} };
+
+    let id = req.params.id;
+    let user = await UserService.buscarToken(id);
+
+    if (user) {
+      json.result = {
+        token: user.token,
+      };
+    }
+    res.json(json);
+  },
 };

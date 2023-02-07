@@ -70,4 +70,18 @@ module.exports = {
       });
     });
   },
+
+  buscarToken: (id) => {
+    return new Promise((aceito, rejeitado) => {
+      db.query("SELECT * FROM users WHERE id = ?", [id], (error, results) => {
+        if (error) {
+          rejeitado(error);
+          return;
+        }
+        if (results.length > 0) {
+          aceito(results[0]);
+        } else false;
+      });
+    });
+  },
 };
