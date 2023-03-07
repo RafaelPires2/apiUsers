@@ -3,6 +3,7 @@ const router = express.Router();
 
 const UserController = require("./controllers/UserController");
 const AuthController = require("./controllers/AuthController");
+const DashboardController = require("./controllers/Dashboard.controller");
 
 // CRUD usuários
 router.get("/users", UserController.buscarTodos);
@@ -14,6 +15,7 @@ router.delete("/user/:id", UserController.excluir);
 // Autenticação
 router.post("/signin", AuthController.signin);
 // router.get("/logout", AuthController.logout);
-router.get("/validate/:id/", AuthController.buscarToken);
+router.get("/dashboard", AuthController.verificarToken, DashboardController.index);
+
 
 module.exports = router;

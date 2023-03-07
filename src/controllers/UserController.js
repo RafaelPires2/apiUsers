@@ -1,4 +1,5 @@
 const UserService = require("../services/UserService");
+const bcrypt = require("bcrypt");
 
 module.exports = {
   buscarTodos: async (req, res) => {
@@ -11,7 +12,6 @@ module.exports = {
         id: users[i].id,
         name: users[i].name,
         email: users[i].email,
-        password: users[i].password,
         token: users[i].token,
       });
     }
@@ -33,25 +33,24 @@ module.exports = {
     res.json(json);
   },
 
-  inserir: async (req, res) => {
+  inserir: (req, res) => {
     let json = { error: "", result: {} };
-
     let name = req.body.name;
     let email = req.body.email;
-    let password = req.body.password;
 
-    if (name && email && password) {
-      let UserId = await UserService.inserir(name, email, password);
-      json.result = {
-        id: UserId,
-        name,
-        email,
-        password,
-      };
-    } else {
-      json.error = "Campos não enviados";
-    }
-    res.json(json);
+    bcrypt.hash(req.body.password, 10, async function (err, hash) {
+      if (name && email && hash) {
+        let UserId = await UserService.inserir(name, email, hash);
+        json.result = {
+          id: UserId,
+          name,
+          email,
+        };
+      } else {
+        json.error = "Campos não enviados";
+      }
+      return res.json(json);
+    });
   },
 
   alterar: async (req, res) => {
@@ -68,7 +67,6 @@ module.exports = {
         id,
         name,
         email,
-        password,
       };
     } else {
       json.error = "Campos não enviados";

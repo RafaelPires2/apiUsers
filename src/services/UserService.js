@@ -29,8 +29,9 @@ module.exports = {
 
   inserir: (name, email, password, token) => {
     return new Promise((aceito, rejeitado) => {
+
       db.query(
-        "INSERT INTO users (name, email, password, token) VALUES (?, ?, ?, uuid())",
+        "INSERT INTO users (name, email, password, token) VALUES (?, ?, ?, ?)",
         [name, email, password, token],
         (error, results) => {
           if (error) {
