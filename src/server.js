@@ -1,17 +1,23 @@
-require("dotenv").config({ path: "variaveis.env" });
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
-const routes = require("./routes");
+const app = express();
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(cors());
 
-const server = express();
-server.use(cors());
-server.use(bodyParser.urlencoded({ extended: false }));
-server.use(bodyParser.json());
+const UserController = require("./controllers/UserController");
+const AuthController = require("./controllers/AuthController");
 
-server.use("/api", routes);
+// Autenticação
+app.post("/auth/login", AuthController.login);
 
-server.listen(process.env.PORT, () => {
-  console.log(`Servidor rodando em: http://localhost:${process.env.PORT}`);
-});
+// CRUD usuários
+app.get("/user", UserController.index);
+app.get("/user/:id", UserController.show);
+app.post("/user", UserController.create);
+app.put("/user/:id", UserController.update);
+app.delete("/user/:id", UserController.delete);
+
+app.listen(3000);

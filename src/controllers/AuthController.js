@@ -1,56 +1,28 @@
-const UserService = require("../services/UserService");
-const AuthService = require("../services/AuthService");
 const jwt = require("jsonwebtoken");
+const response = require("../utils/ResponseHandler");
+const bcrypt = require("bcrypt");
+const User = require("../models/User");
 
 module.exports = {
-  signin: async (req, res) => {
-    let { email, password } = req.body;
-    let result = await AuthService.login(email, password);
+  login: async (req, res) => {
+    const user = await User.findOne({ where: { email: req.body.email } });
+    if (user) {
+      const validPassword = await bcrypt.compare(
+        req.body.password,
+        user.password
+      );
 
-    return res.json(result);
-  },
-
-  buscarToken: async (req, res) => {
-    let json = { error: "", result: {} };
-
-    let id = req.params.id;
-    let token = await AuthService.generateToken(id);
-
-    if (token) {
-      json.result = {
-        token: user.token,
-      };
+      if (validPassword) {
+        token = jwt.sign(
+          { id: user.id, email: user.email, name: user.name },
+          process.env.SECRET_KEY
+        );
+        return response.ResponseSuccess(res, { user, token });
+      } else {
+        response.ResponseError(res, "Senha incorreta", 400);
+      }
+    } else {
+      response.ResponseError(res, "Usuário não encontrado", 404);
     }
-    res.json(json);
-  },
-
-  verificarToken: async (req, res, next) => {
-    const tokenHeader = req.headers["authorization"];
-    const token = tokenHeader && tokenHeader.split(" ")[1];
-
-    if (!token) {
-      return res.status(401).json({
-        statusCode: 401,
-        message: "Não autorizado",
-      });
-    }
-
-    try {
-      jwt.verify(token, process.env.SECRET);
-      next();
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        statusCode: 500,
-        message: "Token não válido.",
-      });
-    }
-  },
-
-  rotaAutenticada: async (req, res) => {
-    res.status(200).json({
-      statusCode: 200,
-      message: "Rota autenticada",
-    });
   },
 };

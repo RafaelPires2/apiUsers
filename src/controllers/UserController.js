@@ -1,84 +1,98 @@
-const UserService = require("../services/UserService");
+const User = require("../models/User");
 const bcrypt = require("bcrypt");
+const response = require("../utils/ResponseHandler");
 
 module.exports = {
-  buscarTodos: async (req, res) => {
-    let json = { error: "", result: [] };
+  index: async (req, res) => {
+    try {
+      const users = await User.findAll();
+      return response.ResponseSuccess(res, users);
+    } catch (error) {
+      response.ResponseError(res, "Erro ao retornar usuários", 500);
+    }
+  },
 
-    let users = await UserService.buscarTodos();
-
-    for (let i in users) {
-      json.result.push({
-        id: users[i].id,
-        name: users[i].name,
-        email: users[i].email,
-        token: users[i].token,
+  show: async (req, res) => {
+    try {
+      const user = await User.findOne({
+        where: {
+          id: req.params.id,
+        },
       });
+      if (user) return response.ResponseSuccess(res, user);
+
+      response.ResponseError(res, "Usuário não encontrado", 404);
+    } catch (error) {
+      response.ResponseError(res, "Erro ao retornar usuários", 500);
     }
-    res.json(json);
   },
-  buscarUm: async (req, res) => {
-    let json = { error: "", result: {} };
 
-    let id = req.params.id;
-    let user = await UserService.buscarUm(id);
+  create: async (req, res) => {
+    try {
+      const salt = await bcrypt.genSalt(10);
 
-    if (user) {
-      json.result = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
+      const data = {
+        name: req.body.name,
+        email: req.body.email,
+        password: await bcrypt.hash(req.body.password, salt),
       };
-    }
-    res.json(json);
-  },
+      const user = await User.create(data);
+      delete user.password;
 
-  inserir: (req, res) => {
-    let json = { error: "", result: {} };
-    let name = req.body.name;
-    let email = req.body.email;
-
-    bcrypt.hash(req.body.password, 10, async function (err, hash) {
-      if (name && email && hash) {
-        let UserId = await UserService.inserir(name, email, hash);
-        json.result = {
-          id: UserId,
-          name,
-          email,
-        };
+      return response.ResponseSuccess(res, user);
+    } catch (error) {
+      if (error.errors[0].message === "email must be unique") {
+        response.ResponseError(
+          res,
+          "Já existe uma conta cadastrada com este e-mail.",
+          401
+        );
       } else {
-        json.error = "Campos não enviados";
+        response.ResponseError(res, "Erro ao cadastrar usuário", 500);
       }
-      return res.json(json);
-    });
-  },
-
-  alterar: async (req, res) => {
-    let json = { error: "", result: {} };
-
-    let id = req.params.id;
-    let name = req.body.name;
-    let email = req.body.email;
-    let password = req.body.password;
-
-    if (id && name && email && password) {
-      await UserService.alterar(id, name, email, password);
-      json.result = {
-        id,
-        name,
-        email,
-      };
-    } else {
-      json.error = "Campos não enviados";
     }
-    res.json(json);
   },
 
-  excluir: async (req, res) => {
-    let json = { error: "", result: {} };
+  update: async (req, res) => {
+    try {
+      const data = req.body;
 
-    await UserService.excluir(req.params.id);
+      delete data.id;
+      delete data.password;
+      delete data.createdAt;
 
-    res.json(json);
+      const user = await User.findOne({
+        where: {
+          id: req.params.id,
+        },
+      });
+      user.set(req.body);
+      await user.save();
+      return response.ResponseSuccess(res, user);
+    } catch (error) {
+      response.ResponseError(res, "Erro ao atualizar usuário", 500);
+    }
+  },
+
+  delete: async (req, res) => {
+    try {
+      const user = await User.findOne({
+        where: {
+          id: req.params.id,
+        },
+      });
+
+      if (!user) {
+        response.ResponseError(res, "A sua conta já foi excluída.", 400);
+      } else {
+        await user.destroy();
+        return response.ResponseSuccess(
+          res,
+          "A sua conta foi excluída com sucesso."
+        );
+      }
+    } catch (error) {
+      response.ResponseError(res, "Erro ao excluir sua conta.", 500);
+    }
   },
 };
