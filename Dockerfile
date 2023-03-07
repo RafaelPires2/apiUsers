@@ -1,6 +1,6 @@
 FROM node:16.13.1-alpine
 
-WORKDIR /api-onde-tem-missa
+WORKDIR /apiUsers
 COPY package.json .
 RUN npm install
 COPY . .
