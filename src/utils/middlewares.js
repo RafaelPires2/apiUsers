@@ -18,4 +18,8 @@ module.exports = {
       response.ResponseError(res, "Erro ao validar credenciais", 500);
     }
   },
+  accountOwner: async (req, res, next) => {
+    const tokenHeader = req.headers["authorization"];
+    const token = tokenHeader && tokenHeader.split(" ")[1];
+  },
 };
